@@ -2,31 +2,89 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notes - Développement Sécurisé</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f6fa;
+      color: #2d3436;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1e1e2e;
+    }
+    #last-update {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      max-width: 760px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #f0f0f5;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #666;
+    }
+    tbody tr { border-top: 1px solid #f0f0f0; }
+    td { padding: 12px 16px; font-size: 14px; }
+    .note-cell { font-weight: 600; }
+  </style>
 </head>
 <body>
   <h1>Notes - Développement Sécurisé</h1>
-  <p id="last-update"></p>
-  <table border="1">
-    <thead>
-      <tr><th>Nom</th><th>Prénom</th><th>Note</th></tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+  <div id="last-update">Chargement…</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>Nom</th><th>Prénom</th><th>Note</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
   <script>
+    const tbody = document.getElementById("tbody");
+    const lastUpdate = document.getElementById("last-update");
+
     async function refresh() {
-      const res = await fetch("/notes");
-      const data = await res.json();
-      const tbody = document.getElementById("tbody");
-      tbody.innerHTML = "";
-      data.etudiants.forEach(function(e) {
-        var row = document.createElement("tr");
-        row.innerHTML = "<td>" + e.nom + "</td><td>" + e.prenom + "</td><td>" + e.note + "/" + e.sur + "</td>";
-        tbody.appendChild(row);
-      });
-      document.getElementById("last-update").textContent =
-        "Dernière mise à jour : " + new Date().toLocaleTimeString("fr-FR");
+      try {
+        const res = await fetch("/notes");
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        tbody.innerHTML = "";
+        data.etudiants.forEach(function(e) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            "<td>" + e.nom + "</td>" +
+            "<td>" + e.prenom + "</td>" +
+            "<td class='note-cell'>" + e.note + "/" + e.sur + "</td>";
+          tbody.appendChild(row);
+        });
+        lastUpdate.textContent =
+          "Dernière mise à jour : " + new Date().toLocaleTimeString("fr-FR");
+      } catch {
+        lastUpdate.textContent = "Erreur de chargement - nouvelle tentative…";
+      }
     }
+
     refresh();
   </script>
 </body>
