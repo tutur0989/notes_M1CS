@@ -135,6 +135,22 @@
 
     footer a { color: #aaa; text-decoration: none; }
     footer a:hover { color: #888; }
+
+    #last-update.error { color: #e74c3c; }
+
+    @keyframes shimmer {
+      0%   { background-position: -500px 0; }
+      100% { background-position:  500px 0; }
+    }
+    .skel {
+      display: inline-block;
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #ebebeb 25%, #d8d8d8 50%, #ebebeb 75%);
+      background-size: 1000px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-row td { padding: 14px 16px; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -185,6 +201,24 @@
     const tbodyRight = document.getElementById("tbody-right");
     const lastUpdate = document.getElementById("last-update");
     let prevNotes = {};
+    let hasData = false;
+
+    const SKEL_WIDTHS = [
+      [118, 72], [84, 58], [132, 76], [96, 64], [108, 80],
+      [74, 62], [124, 88], [88, 68], [100, 56], [114, 74],
+      [78, 66], [102, 82]
+    ];
+
+    function renderSkeleton() {
+      tbody.innerHTML = SKEL_WIDTHS.map(([w1, w2]) => `
+        <tr class="skeleton-row">
+          <td><div class="skel" style="width:${w1}px"></div></td>
+          <td><div class="skel" style="width:${w2}px"></div></td>
+          <td><div class="skel" style="width:44px"></div></td>
+          <td><div class="skel" style="width:${80 + w2}px"></div></td>
+        </tr>
+      `).join("");
+    }
 
     function barClass(note, sur) {
       const pct = note / sur;
@@ -242,14 +276,21 @@
         const res = await fetch("/notes");
         if (!res.ok) throw new Error();
         const data = await res.json();
+        if (!hasData) {
+          tbody.innerHTML = "";
+          hasData = true;
+        }
         render(data.etudiants);
+        lastUpdate.classList.remove("error");
         const now = new Date();
         lastUpdate.textContent = `Dernière mise à jour : ${now.toLocaleTimeString("fr-FR")}`;
       } catch {
+        lastUpdate.classList.add("error");
         lastUpdate.textContent = "Erreur de chargement - nouvelle tentative…";
       }
     }
 
+    renderSkeleton();
     refresh();
     setInterval(refresh, 3000);
   </script>
