@@ -44,9 +44,15 @@
       letter-spacing: .6px;
       color: #666;
     }
-    tbody tr { border-top: 1px solid #f0f0f0; }
+    tbody tr { border-top: 1px solid #f0f0f0; transition: background .15s; }
     td { padding: 12px 16px; font-size: 14px; }
-    .note-cell { font-weight: 600; }
+    .note-cell { font-weight: 600; width: 120px; }
+    .bar-cell { width: 180px; }
+    .bar-wrap { background: #eee; border-radius: 4px; height: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+    .bar-red    { background: #e74c3c; }
+    .bar-orange { background: #e67e22; }
+    .bar-green  { background: #27ae60; }
   </style>
 </head>
 <body>
@@ -55,7 +61,9 @@
   <div class="card">
     <table>
       <thead>
-        <tr><th>Nom</th><th>Prénom</th><th>Note</th></tr>
+        <tr>
+          <th>Nom</th><th>Prénom</th><th>Note</th><th>Progression</th>
+        </tr>
       </thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -64,6 +72,13 @@
     const tbody = document.getElementById("tbody");
     const lastUpdate = document.getElementById("last-update");
 
+    function barClass(note, sur) {
+      const pct = note / sur;
+      if (pct > 0.6) return "bar-green";
+      if (pct >= 0.5) return "bar-orange";
+      return "bar-red";
+    }
+
     async function refresh() {
       try {
         const res = await fetch("/notes");
@@ -71,11 +86,14 @@
         const data = await res.json();
         tbody.innerHTML = "";
         data.etudiants.forEach(function(e) {
+          const pct = Math.round((e.note / e.sur) * 100);
+          const cls = barClass(e.note, e.sur);
           const row = document.createElement("tr");
           row.innerHTML =
             "<td>" + e.nom + "</td>" +
             "<td>" + e.prenom + "</td>" +
-            "<td class='note-cell'>" + e.note + "/" + e.sur + "</td>";
+            "<td class='note-cell'>" + e.note + "/" + e.sur + "</td>" +
+            "<td class='bar-cell'><div class='bar-wrap'><div class='bar-fill " + cls + "' style='width:" + pct + "%'></div></div></td>";
           tbody.appendChild(row);
         });
         lastUpdate.textContent =
