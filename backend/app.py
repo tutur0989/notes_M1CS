@@ -16,9 +16,19 @@ def notes():
         data = r.json()
         if "etudiants" not in data:
             raise ValueError("invalid structure")
-        return jsonify(data)
     except Exception:
         return jsonify({"error": "Service temporairement indisponible"}), 503
+
+    student_id = request.args.get("id")
+    if student_id is not None:
+        try:
+            idx = int(student_id)
+            etudiants = [data["etudiants"][idx]]
+        except (ValueError, IndexError):
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({**data, "etudiants": etudiants})
+
+    return jsonify(data)
 
 
 @app.route("/search")
