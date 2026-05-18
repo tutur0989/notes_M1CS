@@ -1,4 +1,4 @@
-# Notes - Développement Sécurisé
+# Notes - Développement Sécurisé 
 
 Tableau de bord en temps réel des notes de la promotion Efrei M1 CS 2025-2026.
 
